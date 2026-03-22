@@ -1,4 +1,4 @@
-# Local Network File Sharing (Frontend)
+# Local Network File Sharing
 
 This is the React frontend for a local network file-sharing application designed to facilitate seamless file transfers between devices on the same network.
 
