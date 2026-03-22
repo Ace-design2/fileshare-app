@@ -52,8 +52,10 @@ function App() {
                         }));
                         setDevices(allDevices);
                         
-                        // Set currentDeviceId if our username matches (heuristic for late joiner self-id, though backend could send explicitly)
-                        // Actually, the backend sends device_joined right after with our id. 
+                        if (msg.my_device_id) {
+                            setCurrentDeviceId(msg.my_device_id);
+                        }
+                        
                         addLog(`Loaded ${allDevices.length} existing devices on network`, 'info');
                     }
                     break;

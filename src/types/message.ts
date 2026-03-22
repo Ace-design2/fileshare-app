@@ -4,6 +4,7 @@ export interface WebSocketMessage {
     type: string;
     device_id?: string;
     devices?: Device[];
+    my_device_id?: string;
     username?: string;
     message?: string;
     filename?: string;
