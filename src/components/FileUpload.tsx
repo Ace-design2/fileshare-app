@@ -6,9 +6,10 @@ import type { Device } from '../types/device';
 interface FileUploadProps {
     disabled: boolean;
     selectedDevice: Device | null;
+    selfUsername: string;
 }
 
-export const FileUpload: React.FC<FileUploadProps> = ({ disabled, selectedDevice }) => {
+export const FileUpload: React.FC<FileUploadProps> = ({ disabled, selectedDevice, selfUsername }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -18,18 +19,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({ disabled, selectedDevice
     const handleUpload = async (file: File) => {
         if (!file || disabled) return;
         
-        if (!selectedDevice) {
-            setError('Please select a device to send the file.');
-            setTimeout(() => setError(null), 3000);
-            return;
-        }
-        
         setError(null);
         setSuccess(null);
         setUploading(true);
         
         try {
-            await uploadFile(file, selectedDevice.id);
+            await uploadFile(file, selectedDevice?.id, selfUsername);
             setSuccess(`Successfully shared ${file.name}`);
             setTimeout(() => setSuccess(null), 5000);
         } catch (err) {
@@ -104,7 +99,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ disabled, selectedDevice
                         ? 'Sharing file to network...' 
                         : selectedDevice 
                             ? `Sending to: ${selectedDevice.username || selectedDevice.name}`
-                            : 'Tap to select or drop a file'}
+                            : 'Sending to: All Devices'}
                 </h3>
                 
                 <p className="text-sm font-medium text-gray-500 mb-4 text-center max-w-sm">
@@ -112,7 +107,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ disabled, selectedDevice
                         ? 'Connect to the network to share files' 
                         : selectedDevice
                             ? 'Drop a file here to transfer it directly to this device.'
-                            : 'Select a device from the list above to send a file.'}
+                            : 'Select any file to instantly share it across the local network.'}
                 </p>
 
                 {error && (

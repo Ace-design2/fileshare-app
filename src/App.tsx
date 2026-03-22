@@ -177,6 +177,7 @@ function App() {
                         <FileUpload 
                             disabled={!connected} 
                             selectedDevice={selectedDevice} 
+                            selfUsername={username || 'Unknown'}
                         />
                     </div>
                     
