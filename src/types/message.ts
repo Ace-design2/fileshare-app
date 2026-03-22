@@ -1,6 +1,9 @@
+import type { Device } from './device';
+
 export interface WebSocketMessage {
     type: string;
     device_id?: string;
+    devices?: Device[];
     username?: string;
     message?: string;
     filename?: string;

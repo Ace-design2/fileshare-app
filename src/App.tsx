@@ -43,6 +43,20 @@ function App() {
 
         const removeMessageListener = wsService.addMessageListener((msg: WebSocketMessage) => {
             switch (msg.type) {
+                case 'current_devices':
+                    if (msg.devices) {
+                        const allDevices = msg.devices.map((d: any) => ({
+                            id: d.device_id || d.id,
+                            username: d.username || 'Unknown',
+                            name: d.username || `Device ${d.device_id?.split('_')[1] || d.id}`
+                        }));
+                        setDevices(allDevices);
+                        
+                        // Set currentDeviceId if our username matches (heuristic for late joiner self-id, though backend could send explicitly)
+                        // Actually, the backend sends device_joined right after with our id. 
+                        addLog(`Loaded ${allDevices.length} existing devices on network`, 'info');
+                    }
+                    break;
                 case 'device_joined':
                     if (msg.device_id) {
                         setDevices(prev => {
