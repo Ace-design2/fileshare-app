@@ -1,74 +1,41 @@
-# React + TypeScript + Vite
+# Local Network File Sharing (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the React frontend for a local network file-sharing application designed to facilitate seamless file transfers between devices on the same network.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Real-Time Device Discovery:** Automatically detects and displays other devices on the local network using WebSockets.
+- **File Uploads & Downloads:** Supports sending and receiving files with a responsive progress indicator.
+- **Live Status Notifications:** Keeps you informed about connection statuses and ongoing transfer progress.
+- **Responsive UI:** A modern, clean user interface built with Tailwind CSS.
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework:** React 19 + TypeScript
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS
+- **Icons:** Lucide React
+- **HTTP Client:** Axios
+- **Real-Time Communication:** WebSockets
 
-## Expanding the ESLint configuration
+## Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Ensure you have [Node.js](https://nodejs.org/) installed along with a package manager like `npm` or `yarn`.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. **Install Dependencies:**
+   ```bash
+   npm install
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2. **Run the Development Server:**
+   ```bash
+   npm run dev
+   ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+   The app will be available at `http://localhost:5173` (or depending on your Vite configuration).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Connecting to the Backend
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-# fileshare-app
+This frontend is designed to work alongside a FastAPI backend. Ensure the backend server is running and accessible on your local network (typically on port `8000`). The frontend establishes both HTTP and WebSocket connections to facilitate its core features.
