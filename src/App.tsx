@@ -1,18 +1,23 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Header } from './components/Header';
 import { DeviceList } from './components/DeviceList';
 import { FileUpload } from './components/FileUpload';
 import { StatusPanel } from './components/StatusPanel';
+import { ChatPanel } from './components/ChatPanel';
 import type { LogMessage } from './components/StatusPanel';
 import { wsService } from './services/websocket';
+import { generateUsername } from './utils/nameGenerator';
 import type { Device } from './types/device';
 import type { WebSocketMessage } from './types/message';
 import { Info } from 'lucide-react';
 
 function App() {
     const [connected, setConnected] = useState(false);
+    const [username] = useState<string>(() => generateUsername());
     const [devices, setDevices] = useState<Device[]>([]);
+    const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
     const [logs, setLogs] = useState<LogMessage[]>([]);
+    const [chatMessages, setChatMessages] = useState<WebSocketMessage[]>([]);
     const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
 
     const addLog = useCallback((text: string, type: LogMessage['type'] = 'info', filename?: string) => {
@@ -42,7 +47,11 @@ function App() {
                     if (msg.device_id) {
                         setDevices(prev => {
                             if (!prev.find(d => d.id === msg.device_id)) {
-                                return [...prev, { id: msg.device_id!, name: `Device ${msg.device_id!.split('_')[1] || msg.device_id}` }];
+                                return [...prev, { 
+                                    id: msg.device_id!, 
+                                    username: msg.username || 'Unknown',
+                                    name: msg.username || `Device ${msg.device_id!.split('_')[1] || msg.device_id}` 
+                                }];
                             }
                             return prev;
                         });
@@ -58,8 +67,13 @@ function App() {
                 case 'device_left':
                     if (msg.device_id) {
                         setDevices(prev => prev.filter(d => d.id !== msg.device_id));
+                        setSelectedDevice(prev => prev?.id === msg.device_id ? null : prev);
                         addLog(`Device left: ${msg.device_id}`, 'warning');
                     }
+                    break;
+                case 'chat_message':
+                case 'private_message':
+                    setChatMessages(prev => [...prev, msg]);
                     break;
                 case 'file_transfer_started':
                     if (msg.filename) {
@@ -81,7 +95,7 @@ function App() {
             }
         });
 
-        wsService.connect();
+        wsService.connect(username);
 
         return () => {
             removeStatusListener();
@@ -91,7 +105,31 @@ function App() {
     }, [addLog]);
 
     const selfDevice = devices.find(d => d.id === currentDeviceId);
-    const deviceName = selfDevice ? selfDevice.name : 'Connecting...';
+    const deviceName = selfDevice?.username || selfDevice?.name || 'Connecting...';
+
+    const handleSendMessage = (message: string) => {
+        if (selectedDevice && selectedDevice.id) {
+            wsService.sendMessage({
+                type: 'private_message',
+                target_device_id: selectedDevice.id,
+                sender: username,
+                message: message
+            });
+            // Immediately add our own private message to view
+            setChatMessages(prev => [...prev, {
+                type: 'private_message',
+                sender: username,
+                message: message,
+                target_device_id: selectedDevice.id
+            }]);
+        } else {
+            wsService.sendMessage({
+                type: 'chat_message',
+                sender: username,
+                message: message
+            });
+        }
+    };
 
     return (
         <div className="min-h-screen flex flex-col font-sans text-gray-900">
@@ -114,11 +152,25 @@ function App() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="col-span-1 lg:col-span-2 flex flex-col">
-                        <DeviceList devices={devices} currentDeviceId={currentDeviceId} />
-                        <FileUpload disabled={!connected} />
+                        <DeviceList 
+                            devices={devices} 
+                            currentDeviceId={currentDeviceId} 
+                            selectedDevice={selectedDevice}
+                            onSelectDevice={setSelectedDevice}
+                        />
+                        <FileUpload 
+                            disabled={!connected} 
+                            selectedDevice={selectedDevice} 
+                        />
                     </div>
                     
-                    <div className="col-span-1 flex flex-col pt-6 lg:pt-8">
+                    <div className="col-span-1 flex flex-col gap-6 pt-6 lg:pt-8">
+                        <ChatPanel 
+                            messages={chatMessages}
+                            onSendMessage={handleSendMessage}
+                            selectedDevice={selectedDevice}
+                            selfUsername={username || 'Unknown'}
+                        />
                         <StatusPanel logs={logs} />
                     </div>
                 </div>

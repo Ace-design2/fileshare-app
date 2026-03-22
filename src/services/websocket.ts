@@ -11,8 +11,11 @@ class WebSocketService {
     private maxReconnectAttempts = 5;
     private reconnectDelay = 2000;
     
+    private username: string = "Unknown";
+
     // Connects to the robust websocket service
-    connect(url: string = 'ws://localhost:8000/ws') {
+    connect(username: string, url: string = 'ws://localhost:8000/ws') {
+        this.username = username;
         if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
             return;
         }
@@ -23,6 +26,13 @@ class WebSocketService {
             this.socket.onopen = () => {
                 console.log('WebSocket connected successfully');
                 this.reconnectAttempts = 0;
+                
+                // Immediately register the device with its username
+                this.sendMessage({
+                    type: 'register_device',
+                    username: this.username
+                });
+                
                 this.notifyStatusListeners(true);
             };
 
@@ -55,7 +65,7 @@ class WebSocketService {
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
             console.log(`Attempting to securely reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-            setTimeout(() => this.connect(url), this.reconnectDelay);
+            setTimeout(() => this.connect(this.username, url), this.reconnectDelay);
         } else {
             console.error('Max robust reconnect attempts visually reached.');
         }
@@ -69,6 +79,15 @@ class WebSocketService {
             this.socket = null;
         }
         this.notifyStatusListeners(false);
+    }
+
+    // Send a JSON message to the backend
+    sendMessage(msg: any) {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify(msg));
+        } else {
+            console.error('Cannot send message, WebSocket is not open.');
+        }
     }
 
     // Subscribe to incoming messages

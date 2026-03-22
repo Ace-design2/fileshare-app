@@ -1,4 +1,5 @@
 export interface Device {
     id: string;
-    name: string;
+    username: string;
+    name?: string; // Kept for backward compatibility while we refactor
 }

@@ -5,9 +5,11 @@ import { MonitorSmartphone, User } from 'lucide-react';
 interface DeviceListProps {
     devices: Device[];
     currentDeviceId: string | null;
+    selectedDevice: Device | null;
+    onSelectDevice: (device: Device | null) => void;
 }
 
-export const DeviceList: React.FC<DeviceListProps> = ({ devices, currentDeviceId }) => {
+export const DeviceList: React.FC<DeviceListProps> = ({ devices, currentDeviceId, selectedDevice, onSelectDevice }) => {
     if (devices.length === 0) {
         return (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center mt-6 transition-all duration-300">
@@ -33,10 +35,31 @@ export const DeviceList: React.FC<DeviceListProps> = ({ devices, currentDeviceId
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {devices.map((device) => {
                     const isSelf = device.id === currentDeviceId;
+                    const isSelected = selectedDevice?.id === device.id;
+                    
+                    let cardClasses = 'group relative flex flex-col items-center p-6 bg-white rounded-2xl transition-all duration-300 ';
+                    let headerClasses = 'p-4 rounded-full mb-3 shadow-inner ';
+                    
+                    if (isSelf) {
+                        cardClasses += 'border-2 border-indigo-500 shadow-md ring-4 ring-indigo-50 ring-opacity-50 opacity-70 '
+                        headerClasses += 'bg-indigo-100 text-indigo-600 '
+                    } else if (isSelected) {
+                        cardClasses += 'border-2 border-emerald-500 shadow-lg ring-4 ring-emerald-50 bg-emerald-50/20 cursor-pointer '
+                        headerClasses += 'bg-emerald-100 text-emerald-600 '
+                    } else {
+                        cardClasses += 'border border-gray-200 hover:border-indigo-300 hover:shadow-md shadow-sm hover:-translate-y-1 cursor-pointer '
+                        headerClasses += 'bg-gray-50 text-gray-500 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors '
+                    }
+
                     return (
                         <div 
                             key={device.id} 
-                            className={`group relative flex flex-col items-center p-6 bg-white rounded-2xl transition-all duration-300 ${isSelf ? 'border-2 border-indigo-500 shadow-md ring-4 ring-indigo-50 ring-opacity-50' : 'border border-gray-200 hover:border-indigo-300 hover:shadow-lg shadow-sm hover:-translate-y-1'}`}
+                            className={cardClasses}
+                            onClick={() => {
+                                if (!isSelf) {
+                                    onSelectDevice(isSelected ? null : device);
+                                }
+                            }}
                         >
                             {isSelf && (
                                 <span className="absolute top-3 right-3 flex h-3 w-3">
@@ -44,11 +67,13 @@ export const DeviceList: React.FC<DeviceListProps> = ({ devices, currentDeviceId
                                   <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-600"></span>
                                 </span>
                             )}
-                            <div className={`p-4 rounded-full mb-3 shadow-inner ${isSelf ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-50 text-gray-500 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors'}`}>
+                            <div className={headerClasses}>
                                 {isSelf ? <User className="w-8 h-8" /> : <MonitorSmartphone className="w-8 h-8" />}
                             </div>
-                            <span className="font-semibold text-gray-900 text-center truncate w-full">{device.name}</span>
-                            <span className="text-xs text-gray-400 mt-1 font-medium">{isSelf ? 'You' : device.id}</span>
+                            <span className="font-semibold text-gray-900 text-center truncate w-full">{device.username || device.name}</span>
+                            <span className="text-xs mt-1 font-medium text-gray-400">
+                                {isSelf ? 'You' : (isSelected ? 'Selected' : 'Click to Select')}
+                            </span>
                         </div>
                     );
                 })}

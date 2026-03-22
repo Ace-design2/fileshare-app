@@ -1,12 +1,14 @@
 import React, { useCallback, useState, useRef } from 'react';
 import { UploadCloud, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { uploadFile } from '../services/api';
+import type { Device } from '../types/device';
 
 interface FileUploadProps {
     disabled: boolean;
+    selectedDevice: Device | null;
 }
 
-export const FileUpload: React.FC<FileUploadProps> = ({ disabled }) => {
+export const FileUpload: React.FC<FileUploadProps> = ({ disabled, selectedDevice }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -16,12 +18,18 @@ export const FileUpload: React.FC<FileUploadProps> = ({ disabled }) => {
     const handleUpload = async (file: File) => {
         if (!file || disabled) return;
         
+        if (!selectedDevice) {
+            setError('Please select a device to send the file.');
+            setTimeout(() => setError(null), 3000);
+            return;
+        }
+        
         setError(null);
         setSuccess(null);
         setUploading(true);
         
         try {
-            await uploadFile(file);
+            await uploadFile(file, selectedDevice.id);
             setSuccess(`Successfully shared ${file.name}`);
             setTimeout(() => setSuccess(null), 5000);
         } catch (err) {
@@ -92,11 +100,19 @@ export const FileUpload: React.FC<FileUploadProps> = ({ disabled }) => {
                 </div>
                 
                 <h3 className="text-xl font-bold text-gray-900 mb-2 tracking-tight">
-                    {uploading ? 'Sharing file to network...' : 'Tap to select or drop a file'}
+                    {uploading 
+                        ? 'Sharing file to network...' 
+                        : selectedDevice 
+                            ? `Sending to: ${selectedDevice.username || selectedDevice.name}`
+                            : 'Tap to select or drop a file'}
                 </h3>
                 
                 <p className="text-sm font-medium text-gray-500 mb-4 text-center max-w-sm">
-                    {disabled ? 'Connect to the network to share files' : 'Select any file to instantly share it across the local network.'}
+                    {disabled 
+                        ? 'Connect to the network to share files' 
+                        : selectedDevice
+                            ? 'Drop a file here to transfer it directly to this device.'
+                            : 'Select a device from the list above to send a file.'}
                 </p>
 
                 {error && (
