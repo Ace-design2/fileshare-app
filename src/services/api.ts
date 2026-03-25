@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = `http://${window.location.hostname}:8000`;
 
 export const uploadFile = async (file: File, targetDeviceId?: string, sender?: string): Promise<any> => {
     const formData = new FormData();

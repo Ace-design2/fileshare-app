@@ -14,7 +14,7 @@ class WebSocketService {
     private username: string = "Unknown";
 
     // Connects to the robust websocket service
-    connect(username: string, url: string = 'ws://localhost:8000/ws') {
+    connect(username: string, url: string = `ws://${window.location.hostname}:8000/ws`) {
         this.username = username;
         if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
             return;
